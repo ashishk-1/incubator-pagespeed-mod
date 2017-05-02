@@ -52,6 +52,7 @@ class RewriteOptions;
 class Statistics;
 class Variable;
 class FreshenMetadataUpdateManager;
+class UpDownCounter;
 
 // RewriteContext manages asynchronous rewriting of some n >= 1 resources (think
 // CSS, JS, or images) into m >= 0 improved versions (typically, n = m = 1).
@@ -151,6 +152,7 @@ class RewriteContext {
   static const char kNumRewritesAbandonedForLockContention[];
   static const char kNumDeadlineAlarmInvocations[];
   static const char kHashMismatchMessage[];
+  static const char kNumRewriteContextReferenceCount[];
 
   // Used to pass the result of the metadata cache lookups. Recipient must
   // take ownership.
@@ -1036,6 +1038,7 @@ class RewriteContext {
   scoped_ptr<ScheduleRewriteContext> schedule_rewrite_context_;
 
   Variable* const num_rewrites_abandoned_for_lock_contention_;
+  UpDownCounter* const num_rewrite_context_ref_count_;
   DISALLOW_COPY_AND_ASSIGN(RewriteContext);
 };
 

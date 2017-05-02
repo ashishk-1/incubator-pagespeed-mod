@@ -1001,6 +1001,7 @@ class RewriteContext::TryLockFunction : public ScheduleRewriteCallback {
 
 void RewriteContext::InitStats(Statistics* stats) {
   stats->AddVariable(kNumRewritesAbandonedForLockContention);
+  stats->AddUpDownCounter(kNumRewriteContextReferenceCount);
   RewriteContext::FetchContext::InitStats(stats);
 }
 
@@ -1010,6 +1011,8 @@ const char RewriteContext::kNumDeadlineAlarmInvocations[] =
     "num_deadline_alarm_invocations";
 const char RewriteContext::kHashMismatchMessage[] =
     "Hash from URL does not match rewritten hash.";
+const char RewriteContext::kNumRewriteContextReferenceCount[] =
+		"num_rewrite_context_reference_count";
 
 RewriteContext::RewriteContext(RewriteDriver* driver,
                                RewriteContext* parent,
@@ -1036,8 +1039,12 @@ RewriteContext::RewriteContext(RewriteDriver* driver,
     dependent_request_trace_(NULL),
     num_rewrites_abandoned_for_lock_contention_(
         Driver()->statistics()->GetVariable(
-            kNumRewritesAbandonedForLockContention)) {
+            kNumRewritesAbandonedForLockContention)),
+    num_rewrite_context_ref_count_(
+        Driver()->statistics()->GetUpDownCounter(
+            kNumRewriteContextReferenceCount)) {
   DCHECK((driver == NULL) != (parent == NULL));  // Exactly one is non-NULL.
+  num_rewrite_context_ref_count_->Add(1);
   partitions_.reset(new OutputPartitions);
 }
 
@@ -1045,6 +1052,7 @@ RewriteContext::~RewriteContext() {
   DCHECK_EQ(0, num_predecessors_);
   DCHECK_EQ(0, outstanding_fetches_);
   DCHECK(successors_.empty());
+  num_rewrite_context_ref_count_->Add(-1);
   STLDeleteElements(&nested_);
 }
 
