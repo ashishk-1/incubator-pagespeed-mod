@@ -4,9 +4,9 @@ load(
     "pagespeed_cc_test_library",
 )
 load("//bazel:data2c.bzl", "data2c_gen2", "data2c_gen2_opt")
+load("//bazel:closure_compiler.bzl", "closure_compiler_gen")
 
 licenses(["notice"])  # Apache 2
-
 
 genrule(
     name = "csp_directive_gperf",
@@ -68,6 +68,27 @@ data2c_gen2(
         "responsive_js",
     ],
 )
+
+closure_compiler_gen(
+    name = "console_js",
+    srcs = [
+        "pagespeed/system/console.js",
+    ],
+    js_dir = "system",
+    js_includes = [
+        "pagespeed/system/console_start.js",
+    ],
+    externs = [
+        "pagespeed/system/js_externs.js",
+        "third_party/closure/externs/google_visualization_api.js",
+    ],
+    entry_points = [
+        "goog:pagespeed.Console",
+        "goog:pagespeed.statistics",
+    ],
+    opt = False,
+)
+
 
 data2c_gen2_opt(
     name = "data2c_generated",

@@ -7,5 +7,8 @@ cc_library(
         "public/global_constants.h",
     ],
     visibility = ["//visibility:public"],
-    deps = ["//pagespeed/kernel/base:pagespeed_base_core"]
+    deps = [
+        "//pagespeed/kernel/base:pagespeed_base_core",
+        "//third_party/closure:download_closure",
+    ]
 )
