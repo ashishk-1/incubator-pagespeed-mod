@@ -15,6 +15,7 @@ load(":libjpeg_turbo.bzl", "libjpeg_turbo_build_rule")
 load(":apr.bzl", "apr_build_rule")
 load(":aprutil.bzl", "aprutil_build_rule")
 load(":serf.bzl", "serf_build_rule")
+load(":closure_compiler.bzl", "closure_library_rules")
 
 ENVOY_COMMIT = "46df72abbd0383676190143d881f29ccf11440f1"
 BROTLI_COMMIT = "882f41850b679c1ff4a3804d5515d142a5807376"
@@ -472,5 +473,6 @@ cc_binary(
         strip_prefix = "closure-library-%s" % CLOSURE_LIBRARY_COMMIT,
         url = "https://github.com/google/closure-library/archive/%s.tar.gz" % CLOSURE_LIBRARY_COMMIT,
         sha256 = "bd5966814e6fdced42e97f8461fcbae52849cf589292a1c589585fcd9fdb3cd2",
+        build_file_content = closure_library_rules,
     )
 
