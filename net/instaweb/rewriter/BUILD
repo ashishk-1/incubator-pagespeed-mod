@@ -7,7 +7,6 @@ load("//bazel:data2c.bzl", "data2c_gen2", "data2c_gen2_opt")
 
 licenses(["notice"])  # Apache 2
 
-
 genrule(
     name = "csp_directive_gperf",
     srcs = ["csp_directive.gperf"],
