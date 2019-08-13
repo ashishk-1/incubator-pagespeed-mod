@@ -15,13 +15,11 @@ cc_library(
 )
 
 closure_compiler_gen(
-    name = "critical_images_beacon_js_opt",
-    srcs = [
-        "rewriter/critical_images_beacon.js",
-    ],
+    name = "critical_images_beacon_opt",
+    js_src = "net/instaweb/rewriter/critical_images_beacon.js",
     js_dir = "rewriter",
     js_includes = [
-        "js/js_utils.js",
+        "net/instaweb/js/js_utils.js",
     ],
     entry_points = [
         "goog:pagespeed.CriticalImages",
