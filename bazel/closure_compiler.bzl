@@ -10,11 +10,14 @@ def closure_compiler_gen(name, js_src, js_includes=[], js_dir=[],entry_points=[]
 
     js_include_str = ""
     for str in js_includes:
-        js_include_str += str + " "
-
+        js_include_str += " --js $$(find ../../../../../execroot/mod_pagespeed/" + str +" )"    
     js_entry_points = ""
     for str in entry_points:
         js_entry_points += " --entry_point " + str
+
+    js_externs = ""
+    for str in externs:
+        js_externs += " --externs $$(find ../../../../../execroot/mod_pagespeed/" + str+")"
 
     if opt == True:
         BUILD_FLAGS = " --compilation_level=ADVANCED"
@@ -27,10 +30,11 @@ def closure_compiler_gen(name, js_src, js_includes=[], js_dir=[],entry_points=[]
         outs = [name + ".js"],
         cmd  = ("java -jar $(location //third_party/closure:compiler_script)/compiler.jar" +
                 " --js $$(find ../../../../../execroot/mod_pagespeed/" + js_src +" )" + 
-                " --js $$(find ../../../../../execroot/mod_pagespeed/" + js_include_str +" )" +
                 " --js_output_file $@" +
+                js_include_str+
                 BUILD_FLAGS +
                 js_entry_points +
+                js_externs +
                 " --dependency_mode STRICT" +
                 " --warning_level VERBOSE" +
                 " --generate_exports" +
