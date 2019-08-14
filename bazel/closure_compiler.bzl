@@ -11,6 +11,7 @@ def closure_compiler_gen(name, js_src, js_includes=[], js_dir=[],entry_points=[]
     js_include_str = ""
     for str in js_includes:
         js_include_str += " --js $$(find ../../../../../execroot/mod_pagespeed/" + str +" )"    
+    
     js_entry_points = ""
     for str in entry_points:
         js_entry_points += " --entry_point " + str
