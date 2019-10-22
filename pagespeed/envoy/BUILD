@@ -127,7 +127,6 @@ filegroup(
         "envoy_url_async_fetcher.h",
         "envoy_cluster_manager.h",
     ],
-    visibility = ["//visibility:public"],
 )
 
 envoy_cc_library(
