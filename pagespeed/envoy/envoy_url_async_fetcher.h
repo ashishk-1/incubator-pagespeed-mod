@@ -25,6 +25,7 @@
 #ifndef NET_INSTAWEB_ENVOY_URL_ASYNC_FETCHER_H_
 #define NET_INSTAWEB_ENVOY_URL_ASYNC_FETCHER_H_
 
+#pragma once
 #include <vector>
 
 #include "apr_network_io.h"
@@ -35,6 +36,9 @@
 #include "pagespeed/kernel/base/thread_system.h"
 #include "envoy_cluster_manager.h"
 
+#include "external/envoy_api/envoy/api/v2/core/http_uri.pb.h"
+
+
 namespace net_instaweb {
 
 class AsyncFetch;
@@ -44,25 +48,81 @@ class Variable;
 
 class EnvoyFetch {};
 
-class EnvoyRemoteDataFetcher : public Envoy::Config::DataFetcher::RemoteDataFetcher {
-public:
-  EnvoyRemoteDataFetcher(Envoy::Upstream::ClusterManager& cm,
-                         const ::envoy::api::v2::core::HttpUri& uri,
-                         const std::string& content_hash,
-                         Envoy::Config::DataFetcher::RemoteDataFetcherCallback& callback)
-      : Envoy::Config::DataFetcher::RemoteDataFetcher(cm, uri, content_hash, callback) {}
 
-  void onSuccess(Envoy::Http::MessagePtr&& response) override;
-  void onFailure(Envoy::Http::AsyncClient::FailureReason reason) override;
+/**
+ * Failure reason.
+ */
+enum class FailureReason {
+  /* A network error occurred causing remote data retrieval failure. */
+  Network,
+  /* A failure occurred when trying to verify remote data using sha256. */
+  InvalidData,
 };
 
-class EnvoyRemoteDataCallback : public Envoy::Config::DataFetcher::RemoteDataFetcherCallback {
+/**
+ * Callback used by remote data fetcher.
+ */
+class EnvoyRemoteDataFetcherCallback {
+public:
+  virtual ~EnvoyRemoteDataFetcherCallback() = default;
+
+  /**
+   * This function will be called when data is fetched successfully from remote.
+   * @param data remote data
+   */
+  virtual void onSuccess(const std::string& data) PURE;
+
+  /**
+   * This function is called when error happens during fetching data.
+   * @param reason failure reason.
+   */
+  virtual void onFailure(FailureReason reason) PURE;
+};
+
+/**
+ * Envoy Remote data fetcher.
+ */
+class EnvoyRemoteDataFetcher : public Envoy::Logger::Loggable<Envoy::Logger::Id::config>,
+                          public Envoy::Http::AsyncClient::Callbacks {
+public:
+  EnvoyRemoteDataFetcher(Envoy::Upstream::ClusterManager& cm, const ::envoy::api::v2::core::HttpUri& uri,
+                    const std::string& content_hash, EnvoyRemoteDataFetcherCallback& callback);
+
+  ~EnvoyRemoteDataFetcher() override;
+
+  // Http::AsyncClient::Callbacks
+  void onSuccess(Envoy::Http::MessagePtr&& response) override;
+  void onFailure(Envoy::Http::AsyncClient::FailureReason reason) override;
+
+  /**
+   * Fetch data from remote.
+   * @param uri remote URI
+   * @param content_hash for verifying data integrity
+   * @param callback callback when fetch is done.
+   */
+  void fetch();
+
+  /**
+   * Cancel the fetch.
+   */
+  void cancel();
+
+private:
+  Envoy::Upstream::ClusterManager& cm_;
+  const envoy::api::v2::core::HttpUri& uri_;
+  const std::string content_hash_;
+  EnvoyRemoteDataFetcherCallback& callback_;
+
+  Envoy::Http::AsyncClient::Request* request_{};
+};
+
+class PagepeedCallback : public EnvoyRemoteDataFetcherCallback {
 public:
   // Config::DataFetcher::RemoteDataFetcherCallback
   void onSuccess(const std::string& data) override {}
 
   // Config::DataFetcher::RemoteDataFetcherCallback
-  void onFailure(Envoy::Config::DataFetcher::FailureReason failure) override {}
+  void onFailure(FailureReason reason) override {}
 };
 
 class EnvoyUrlAsyncFetcher : public UrlAsyncFetcher {

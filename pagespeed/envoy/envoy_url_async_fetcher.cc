@@ -42,6 +42,8 @@
 #include "pagespeed/kernel/http/response_headers.h"
 #include "pagespeed/kernel/http/response_headers_parser.h"
 
+
+
 namespace net_instaweb {
 
 EnvoyUrlAsyncFetcher::EnvoyUrlAsyncFetcher(const char* proxy, ThreadSystem* thread_system,
@@ -58,16 +60,47 @@ EnvoyUrlAsyncFetcher::EnvoyUrlAsyncFetcher(const char* proxy, ThreadSystem* thre
 EnvoyUrlAsyncFetcher::~EnvoyUrlAsyncFetcher() {
 }
 
-void EnvoyRemoteDataFetcher::onSuccess(Envoy::Http::MessagePtr &&response)
-{
-  std::cout << "PagespeedRemoteDataFetcher::onSuccess data: " << response->body()->toString() << "\n";
-  std::cout.flush();
+EnvoyRemoteDataFetcher::EnvoyRemoteDataFetcher(Envoy::Upstream::ClusterManager& cm,
+                                     const ::envoy::api::v2::core::HttpUri& uri,
+                                     const std::string& content_hash,
+                                     EnvoyRemoteDataFetcherCallback& callback)
+    : cm_(cm), uri_(uri), content_hash_(content_hash), callback_(callback) {}
+
+EnvoyRemoteDataFetcher::~EnvoyRemoteDataFetcher() { cancel(); }
+
+void EnvoyRemoteDataFetcher::cancel() {
+  if (request_) {
+    request_->cancel();
+    ENVOY_LOG(debug, "fetch remote data [uri = {}]: canceled", uri_.uri());
+  }
+
+  request_ = nullptr;
 }
 
-void EnvoyRemoteDataFetcher::onFailure(Envoy::Http::AsyncClient::FailureReason reason)
-{
-  std::cout << "PagespeedRemoteDataFetcher::onFailure\n";
+void EnvoyRemoteDataFetcher::fetch() {
+  Envoy::Http::MessagePtr message = Envoy::Http::Utility::prepareHeaders(uri_);
+  message->headers().insertMethod().value().setReference(Envoy::Http::Headers::get().MethodValues.Get);
+  ENVOY_LOG(debug, "fetch remote data from [uri = {}]: start", uri_.uri());
+  request_ = cm_.httpAsyncClientForCluster(uri_.cluster())
+                 .send(std::move(message), *this,
+                       Envoy::Http::AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(
+                           Envoy::DurationUtil::durationToMilliseconds(uri_.timeout()))));
+}
+
+void EnvoyRemoteDataFetcher::onSuccess(Envoy::Http::MessagePtr&& response) {
+  std::cout << "PagespeedRemoteDataFetcher::onSuccess data: " << response->body()->toString() << "\n";
   std::cout.flush();
+  callback_.onSuccess(response->body()->toString());
+  request_ = nullptr;
+}
+
+void EnvoyRemoteDataFetcher::onFailure(Envoy::Http::AsyncClient::FailureReason reason) {
+  // ENVOY_LOG(debug, "fetch remote data [uri = {}]: network error {}", uri_.uri(), enumToInt(reason));
+  request_ = nullptr;
+  callback_.onFailure(FailureReason::Network);
+  // std::cout << "PagespeedRemoteDataFetcher::onFailure\n";
+  // std::cout.flush();
+  // request_ = nullptr;
 }
 
 void EnvoyUrlAsyncFetcher::fetch(){
@@ -76,7 +109,7 @@ void EnvoyUrlAsyncFetcher::fetch(){
   http_uri.set_cluster("cluster1");
   std::string uriHash("123456789");
 
-  Envoy::Config::DataFetcher::RemoteDataFetcherCallback* cb = new EnvoyRemoteDataCallback();
+  PagepeedCallback* cb = new PagepeedCallback();
   std::unique_ptr<EnvoyRemoteDataFetcher> EnvoyRemoteDataFetcherPtr =
       std::make_unique<EnvoyRemoteDataFetcher>(*cluster_manager_->getClusterManager(), http_uri, uriHash, *cb);
 
@@ -87,8 +120,10 @@ void EnvoyUrlAsyncFetcher::fetch(){
 
 bool EnvoyUrlAsyncFetcher::Init() {
   cluster_manager_ = new EnvoyClusterManager();
-
-  fetch();
+  for(int i =0;i<5;i++){
+      fetch();
+  }
+  
 
   return true;
 }
