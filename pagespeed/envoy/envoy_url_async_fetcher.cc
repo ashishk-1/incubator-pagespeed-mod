@@ -63,6 +63,7 @@ EnvoyUrlAsyncFetcher::~EnvoyUrlAsyncFetcher() {
 void PagepeedCallback::onSuccess(const std::string& data){
   std::cout << "PagepeedCallback::onSuccess data:" << data <<"\n";
   std::cout.flush();
+  
 
 }
 
@@ -79,17 +80,19 @@ void EnvoyUrlAsyncFetcher::fetch(){
 
   PagepeedCallback* cb = new PagepeedCallback();
   std::unique_ptr<PagespeedRemoteDataFetcher> PagespeedRemoteDataFetcherPtr =
-      std::make_unique<PagespeedRemoteDataFetcher>(*cluster_manager_->getClusterManager(), http_uri, uriHash, *cb);
+      std::make_unique<PagespeedRemoteDataFetcher>(*cluster_manager_->getClusterManager(), http_uri,
+                                               uriHash, *cb);
 
   PagespeedRemoteDataFetcherPtr->fetch();
-
   cluster_manager_->getDispatcher()->run(Envoy::Event::Dispatcher::RunType::Block);
+
 }
 
 bool EnvoyUrlAsyncFetcher::Init() {
   cluster_manager_ = new EnvoyClusterManager();
-  fetch();
-  
+  std::function<void()> fun_ptr = std::bind(&EnvoyUrlAsyncFetcher::fetch, this);
+  cluster_manager_->getDispatcher()->post(fun_ptr);
+  cluster_manager_->getDispatcher()->run(Envoy::Event::Dispatcher::RunType::NonBlock);
   return true;
 }
 
