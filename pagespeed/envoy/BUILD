@@ -126,6 +126,7 @@ filegroup(
     srcs = [
         "envoy_url_async_fetcher.h",
         "envoy_cluster_manager.h",
+        "pagespeed_remote_data_fetcher.h",
     ],
 )
 
@@ -146,6 +147,7 @@ envoy_cc_library(
     srcs = [
         "envoy_url_async_fetcher.cc",
         "envoy_cluster_manager.cc",
+        "pagespeed_remote_data_fetcher.cc"
     ],
     hdrs = [
         ":envoy_fetcher_headers",

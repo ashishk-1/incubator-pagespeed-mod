@@ -34,7 +34,8 @@
 #include "pagespeed/kernel/base/pool.h"
 #include "pagespeed/kernel/base/string.h"
 #include "pagespeed/kernel/base/thread_system.h"
-#include "envoy_cluster_manager.h"
+// #include "envoy_cluster_manager.h"
+#include "pagespeed_remote_data_fetcher.h"
 
 #include "external/envoy_api/envoy/api/v2/core/http_uri.pb.h"
 
@@ -48,81 +49,13 @@ class Variable;
 
 class EnvoyFetch {};
 
-
-/**
- * Failure reason.
- */
-enum class FailureReason {
-  /* A network error occurred causing remote data retrieval failure. */
-  Network,
-  /* A failure occurred when trying to verify remote data using sha256. */
-  InvalidData,
-};
-
-/**
- * Callback used by remote data fetcher.
- */
-class EnvoyRemoteDataFetcherCallback {
-public:
-  virtual ~EnvoyRemoteDataFetcherCallback() = default;
-
-  /**
-   * This function will be called when data is fetched successfully from remote.
-   * @param data remote data
-   */
-  virtual void onSuccess(const std::string& data) PURE;
-
-  /**
-   * This function is called when error happens during fetching data.
-   * @param reason failure reason.
-   */
-  virtual void onFailure(FailureReason reason) PURE;
-};
-
-/**
- * Envoy Remote data fetcher.
- */
-class EnvoyRemoteDataFetcher : public Envoy::Logger::Loggable<Envoy::Logger::Id::config>,
-                          public Envoy::Http::AsyncClient::Callbacks {
-public:
-  EnvoyRemoteDataFetcher(Envoy::Upstream::ClusterManager& cm, const ::envoy::api::v2::core::HttpUri& uri,
-                    const std::string& content_hash, EnvoyRemoteDataFetcherCallback& callback);
-
-  ~EnvoyRemoteDataFetcher() override;
-
-  // Http::AsyncClient::Callbacks
-  void onSuccess(Envoy::Http::MessagePtr&& response) override;
-  void onFailure(Envoy::Http::AsyncClient::FailureReason reason) override;
-
-  /**
-   * Fetch data from remote.
-   * @param uri remote URI
-   * @param content_hash for verifying data integrity
-   * @param callback callback when fetch is done.
-   */
-  void fetch();
-
-  /**
-   * Cancel the fetch.
-   */
-  void cancel();
-
-private:
-  Envoy::Upstream::ClusterManager& cm_;
-  const envoy::api::v2::core::HttpUri& uri_;
-  const std::string content_hash_;
-  EnvoyRemoteDataFetcherCallback& callback_;
-
-  Envoy::Http::AsyncClient::Request* request_{};
-};
-
-class PagepeedCallback : public EnvoyRemoteDataFetcherCallback {
+class PagepeedCallback : public PagespeedRemoteDataFetcherCallback {
 public:
   // Config::DataFetcher::RemoteDataFetcherCallback
-  void onSuccess(const std::string& data) override {}
+  void onSuccess(const std::string& data) override;
 
   // Config::DataFetcher::RemoteDataFetcherCallback
-  void onFailure(FailureReason reason) override {}
+  void onFailure(FailureReason reason) override;
 };
 
 class EnvoyUrlAsyncFetcher : public UrlAsyncFetcher {
@@ -182,7 +115,7 @@ private:
 
   EnvoyFetchPool active_fetches_;
   // Add the pending task to this list
-  std::unique_ptr<EnvoyRemoteDataFetcher> EnvoyRemoteDataFetcherPtr;
+  std::unique_ptr<PagespeedRemoteDataFetcher> PagespeedRemoteDataFetcherPtr;
   EnvoyClusterManager* cluster_manager_;
   EnvoyFetchPool pending_fetches_;
   EnvoyFetchPool completed_fetches_;
