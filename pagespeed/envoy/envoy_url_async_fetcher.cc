@@ -42,8 +42,6 @@
 #include "pagespeed/kernel/http/response_headers.h"
 #include "pagespeed/kernel/http/response_headers_parser.h"
 
-
-
 namespace net_instaweb {
 
 EnvoyUrlAsyncFetcher::EnvoyUrlAsyncFetcher(const char* proxy, ThreadSystem* thread_system,
@@ -60,15 +58,13 @@ EnvoyUrlAsyncFetcher::EnvoyUrlAsyncFetcher(const char* proxy, ThreadSystem* thre
 EnvoyUrlAsyncFetcher::~EnvoyUrlAsyncFetcher() {
 }
 
-void PagepeedCallback::onSuccess(const std::string& data){
-  std::cout << "PagepeedCallback::onSuccess data:" << data <<"\n";
+void PagespeedDataFetcherCallback::onSuccess(const std::string& data){
+  std::cout << "PagespeedDataFetcherCallback::onSuccess data:" << data <<"\n";
   std::cout.flush();
-  
-
 }
 
-void PagepeedCallback::onFailure(FailureReason reason){
-  std::cout << "PagepeedCallback::onFailure\n";
+void PagespeedDataFetcherCallback::onFailure(FailureReason reason){
+  std::cout << "PagespeedDataFetcherCallback::onFailure\n";
   std::cout.flush();
 }
 
@@ -78,7 +74,7 @@ void EnvoyUrlAsyncFetcher::fetch(){
   http_uri.set_cluster("cluster1");
   std::string uriHash("123456789");
 
-  PagepeedCallback* cb = new PagepeedCallback();
+  PagespeedDataFetcherCallback* cb = new PagespeedDataFetcherCallback();
   std::unique_ptr<PagespeedRemoteDataFetcher> PagespeedRemoteDataFetcherPtr =
       std::make_unique<PagespeedRemoteDataFetcher>(*cluster_manager_->getClusterManager(), http_uri,
                                                uriHash, *cb);

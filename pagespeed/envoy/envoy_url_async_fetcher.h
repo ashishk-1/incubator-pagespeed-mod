@@ -34,7 +34,6 @@
 #include "pagespeed/kernel/base/pool.h"
 #include "pagespeed/kernel/base/string.h"
 #include "pagespeed/kernel/base/thread_system.h"
-// #include "envoy_cluster_manager.h"
 #include "pagespeed_remote_data_fetcher.h"
 
 #include "external/envoy_api/envoy/api/v2/core/http_uri.pb.h"
@@ -49,7 +48,7 @@ class Variable;
 
 class EnvoyFetch {};
 
-class PagepeedCallback : public PagespeedRemoteDataFetcherCallback {
+class PagespeedDataFetcherCallback : public PagespeedRemoteDataFetcherCallback {
 public:
   // Config::DataFetcher::RemoteDataFetcherCallback
   void onSuccess(const std::string& data) override;

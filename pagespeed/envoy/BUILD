@@ -139,7 +139,7 @@ filegroup(
 
 cc_library(
    name = "config",
-    data = [":envoy_cluster_config"]
+   data = [":envoy_cluster_config"],
 )
 
 envoy_cc_library(
@@ -147,7 +147,7 @@ envoy_cc_library(
     srcs = [
         "envoy_url_async_fetcher.cc",
         "envoy_cluster_manager.cc",
-        "pagespeed_remote_data_fetcher.cc"
+        "pagespeed_remote_data_fetcher.cc",
     ],
     hdrs = [
         ":envoy_fetcher_headers",
