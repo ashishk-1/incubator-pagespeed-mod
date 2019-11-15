@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -17,10 +17,10 @@
  * under the License.
  */
 
-
 #include "base/logging.h"
 #include "net/instaweb/http/public/async_fetch.h"
 #include "net/instaweb/http/public/request_context.h"
+#include "pagespeed/envoy/envoy_url_async_fetcher.h"
 #include "pagespeed/kernel/base/abstract_mutex.h"
 #include "pagespeed/kernel/base/basictypes.h"
 #include "pagespeed/kernel/base/dynamic_annotations.h"
@@ -43,32 +43,26 @@
 #include "pagespeed/kernel/util/platform.h"
 #include "pagespeed/kernel/util/simple_stats.h"
 #include "pagespeed/system/tcp_server_thread_for_testing.h"
-#include "pagespeed/envoy/envoy_url_async_fetcher.h"
 
 namespace net_instaweb {
 const int kFetcherTimeoutMs = 5 * 1000;
 const int kFetcherTimeoutValgrindMs = 20 * 1000;
 
-
 class EnvoyUrlAsyncFetcherTest : public ::testing::Test {
- public:
+public:
   static void SetUpTestCase() {}
-  
- protected:
+
+protected:
   EnvoyUrlAsyncFetcherTest()
       : thread_system_(Platform::CreateThreadSystem()),
-        message_handler_(thread_system_->NewMutex()),
-        flaky_retries_(0),
-        fetcher_timeout_ms_(FetcherTimeoutMs()) {
-  }
+        message_handler_(thread_system_->NewMutex()), flaky_retries_(0),
+        fetcher_timeout_ms_(FetcherTimeoutMs()) {}
 
   static int64 FetcherTimeoutMs() {
     return RunningOnValgrind() ? kFetcherTimeoutValgrindMs : kFetcherTimeoutMs;
   }
 
-  virtual void TearDown() {
-    timer_.reset(NULL);
-  }
+  virtual void TearDown() { timer_.reset(NULL); }
   scoped_ptr<Timer> timer_;
   scoped_ptr<ThreadSystem> thread_system_;
   MockMessageHandler message_handler_;
@@ -78,13 +72,12 @@ class EnvoyUrlAsyncFetcherTest : public ::testing::Test {
 };
 
 TEST_F(EnvoyUrlAsyncFetcherTest, FetchURL) {
-    timer_.reset(Platform::CreateTimer());
-    statistics_.reset(new SimpleStats(thread_system_.get()));
-    EnvoyUrlAsyncFetcher::InitStats(statistics_.get());
-    
-    new EnvoyUrlAsyncFetcher("", thread_system_.get(),
-                            statistics_.get(), timer_.get(),
-                            fetcher_timeout_ms_, &message_handler_);
+  timer_.reset(Platform::CreateTimer());
+  statistics_.reset(new SimpleStats(thread_system_.get()));
+  EnvoyUrlAsyncFetcher::InitStats(statistics_.get());
+
+  new EnvoyUrlAsyncFetcher("", thread_system_.get(), statistics_.get(), timer_.get(),
+                           fetcher_timeout_ms_, &message_handler_);
 }
 
-}
+} // namespace net_instaweb

@@ -45,21 +45,16 @@
 namespace net_instaweb {
 const char EnvoyStats::kEnvoyFetchRequestCount[] = "envoy_fetch_request_count";
 const char EnvoyStats::kEnvoyFetchByteCount[] = "envoy_fetch_bytes_count";
-const char EnvoyStats::kEnvoyFetchTimeDurationMs[] =
-    "envoy_fetch_time_duration_ms";
+const char EnvoyStats::kEnvoyFetchTimeDurationMs[] = "envoy_fetch_time_duration_ms";
 const char EnvoyStats::kEnvoyFetchCancelCount[] = "envoy_fetch_cancel_count";
-const char EnvoyStats::kEnvoyFetchActiveCount[] =
-    "envoy_fetch_active_count";
+const char EnvoyStats::kEnvoyFetchActiveCount[] = "envoy_fetch_active_count";
 const char EnvoyStats::kEnvoyFetchTimeoutCount[] = "envoy_fetch_timeout_count";
 const char EnvoyStats::kEnvoyFetchFailureCount[] = "envoy_fetch_failure_count";
 const char EnvoyStats::kEnvoyFetchCertErrors[] = "envoy_fetch_cert_errors";
 const char EnvoyStats::kEnvoyFetchReadCalls[] = "envoy_fetch_num_calls_to_read";
-const char EnvoyStats::kEnvoyFetchUltimateSuccess[] =
-    "envoy_fetch_ultimate_success";
-const char EnvoyStats::kEnvoyFetchUltimateFailure[] =
-    "envoy_fetch_ultimate_failure";
-const char EnvoyStats::kEnvoyFetchLastCheckTimestampMs[] =
-    "envoy_fetch_last_check_timestamp_ms";
+const char EnvoyStats::kEnvoyFetchUltimateSuccess[] = "envoy_fetch_ultimate_success";
+const char EnvoyStats::kEnvoyFetchUltimateFailure[] = "envoy_fetch_ultimate_failure";
+const char EnvoyStats::kEnvoyFetchLastCheckTimestampMs[] = "envoy_fetch_last_check_timestamp_ms";
 
 EnvoyUrlAsyncFetcher::EnvoyUrlAsyncFetcher(const char* proxy, ThreadSystem* thread_system,
                                            Statistics* statistics, Timer* timer, int64 timeout_ms,
