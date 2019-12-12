@@ -107,13 +107,6 @@ void EnvoyClusterManager::initClusterManager() {
       dispatcher_->createDnsResolver({}), *ssl_context_manager_, *dispatcher_, *local_info_,
       secret_manager_, validation_context_, *api_, http_context_, *access_log_manager_,
       *singleton_manager_);
-
-  Envoy::MessageUtil::loadFromFile(
-      "pagespeed/envoy/cluster.yaml",
-      bootstrap, Envoy::ProtobufMessage::getStrictValidationVisitor(), *api_);
-
-  cluster_manager_ = cluster_manager_factory_->clusterManagerFromProto(bootstrap);
-  cluster_manager_->setInitializedCb([this]() -> void { init_manager_.initialize(init_watcher_); });
 }
 
 } // namespace net_instaweb
