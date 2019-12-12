@@ -41,8 +41,13 @@ public:
   EnvoyClusterManager();
   ~EnvoyClusterManager();
   void initClusterManager();
-  Envoy::Upstream::ClusterManager& getClusterManager() { return *cluster_manager_; }
+  // Envoy::Upstream::ClusterManager& getClusterManager() { return *cluster_manager_; }
   Envoy::Event::DispatcherPtr& getDispatcher() { return dispatcher_; }
+  Envoy::Upstream::ProdClusterManagerFactory& getClusterManagerFactory() {
+    return *cluster_manager_factory_;
+  }
+  Envoy::Init::ManagerImpl& getInitManager() { return init_manager_; }
+  Envoy::Init::WatcherImpl& getInitWatcher() { return init_watcher_; }
 
 private:
   Envoy::ThreadLocal::InstanceImpl tls_;
