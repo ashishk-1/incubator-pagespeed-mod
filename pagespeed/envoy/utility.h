@@ -44,8 +44,13 @@ public:
    * insensitive). Any other values will throw a NighthawkException.
    * @return Envoy::Network::DnsLookupFamily the equivalent DnsLookupFamily value
    */
-  // static Envoy::Network::DnsLookupFamily
-  // translateFamilyOptionString(nighthawk::client::AddressFamily::AddressFamilyOptions value);
+  enum AddressFamilyOption {
+    AUTO = 0,
+    V4 = 1,
+    V6 = 2,
+  };
+  static Envoy::Network::DnsLookupFamily
+  translateFamilyOptionString(AddressFamilyOption value);
 
   /**
    * Executes TCLAP command line parsing
