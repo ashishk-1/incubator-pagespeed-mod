@@ -86,7 +86,7 @@ void EnvoyFetch::FetchWithEnvoy() {
   http_uri.set_cluster(cluster_str);
   cb_ptr_ = std::make_unique<PagespeedDataFetcherCallback>(this);
   std::unique_ptr<PagespeedRemoteDataFetcher> PagespeedRemoteDataFetcherPtr = 
-      std::make_unique<PagespeedRemoteDataFetcher>(cluster_manager_.getClusterManager(), http_uri, *cb_ptr_);
+      std::make_unique<PagespeedRemoteDataFetcher>(cluster_manager_.getClusterManager(str_url_), http_uri, *cb_ptr_);
 
   PagespeedRemoteDataFetcherPtr->fetch();
   cluster_manager_.getDispatcher()->run(Envoy::Event::Dispatcher::RunType::Block);
