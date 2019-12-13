@@ -117,6 +117,7 @@ EnvoyFetch::createBootstrapConfiguration(const Uri& uri) const {
   auto* cluster = bootstrap.mutable_static_resources()->add_clusters();
   cluster->set_name(cluster_str);
   cluster->mutable_connect_timeout()->set_seconds(15);
+  cluster->set_type(envoy::api::v2::Cluster::DiscoveryType::Cluster_DiscoveryType_STATIC);
   auto* host = cluster->add_hosts();
   auto* socket_address = host->mutable_socket_address();
   socket_address->set_address(uri.address()->ip()->addressAsString());
