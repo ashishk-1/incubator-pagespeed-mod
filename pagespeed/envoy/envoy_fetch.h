@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "envoy_url_async_fetcher.h"
+#include "exception.h"
 #include "net/instaweb/http/public/url_async_fetcher.h"
 #include "pagespeed/kernel/base/basictypes.h"
 #include "pagespeed/kernel/base/pool.h"
@@ -32,6 +33,8 @@
 #include "pagespeed/kernel/http/response_headers.h"
 #include "pagespeed/kernel/http/response_headers_parser.h"
 #include "pagespeed_remote_data_fetcher.h"
+#include "uri_impl.h"
+#include "utility.h"
 
 namespace net_instaweb {
 
@@ -94,7 +97,7 @@ private:
   std::unique_ptr<PagespeedDataFetcherCallback> cb_ptr_;
   AsyncFetch* async_fetch_;
   MessageHandler* message_handler_;
-  EnvoyClusterManager& cluster_manager_;
+  EnvoyClusterManager& cluster_manager;
   bool done_;
   int64 content_length_;
   bool content_length_known_;

@@ -69,7 +69,7 @@ EnvoyFetch::EnvoyFetch(const GoogleString& url,
       fetcher_(NULL),
       async_fetch_(async_fetch),
       message_handler_(message_handler),
-      cluster_manager_(cluster_manager),
+      cluster_manager(cluster_manager),
       done_(false),
       content_length_(-1),
       content_length_known_(false) {
@@ -79,24 +79,69 @@ EnvoyFetch::~EnvoyFetch() {
 }
 
 void EnvoyFetch::FetchWithEnvoy() {
+<<<<<<< HEAD
+=======
+  UriImpl uri(str_url_);
+  try {
+    uri.resolve(*cluster_manager.getDispatcher(), Envoy::Network::DnsLookupFamily::Auto);
+  } catch (UriException) {
+    std::cout << "UriException \n";
+    std::cout.flush();
+  }
+  Envoy::Upstream::ClusterManagerPtr cm_{};
+  cm_ = cluster_manager.getClusterManagerFactory().clusterManagerFromProto(
+      createBootstrapConfiguration(uri));
+  cm_->setInitializedCb([this]() -> void {
+    cluster_manager.getInitManager().initialize(cluster_manager.getInitWatcher());
+  });
+>>>>>>> 0b33443699c2d2c4756f9a241c76eccfe8bf1e2c
 
   envoy::api::v2::core::HttpUri http_uri;
   http_uri.set_uri(str_url_);
 
   http_uri.set_cluster(cluster_str);
   cb_ptr_ = std::make_unique<PagespeedDataFetcherCallback>(this);
+<<<<<<< HEAD
   std::unique_ptr<PagespeedRemoteDataFetcher> PagespeedRemoteDataFetcherPtr = 
       std::make_unique<PagespeedRemoteDataFetcher>(cluster_manager_.getClusterManager(str_url_), http_uri, *cb_ptr_);
+=======
+  std::unique_ptr<PagespeedRemoteDataFetcher> PagespeedRemoteDataFetcherPtr =
+      std::make_unique<PagespeedRemoteDataFetcher>(*cm_, http_uri, response_content_hash, *cb_ptr_);
+>>>>>>> 0b33443699c2d2c4756f9a241c76eccfe8bf1e2c
 
   PagespeedRemoteDataFetcherPtr->fetch();
-  cluster_manager_.getDispatcher()->run(Envoy::Event::Dispatcher::RunType::Block);
+  cluster_manager.getDispatcher()->run(Envoy::Event::Dispatcher::RunType::Block);
+}
+
+const envoy::config::bootstrap::v2::Bootstrap
+EnvoyFetch::createBootstrapConfiguration(const Uri& uri) const {
+  envoy::config::bootstrap::v2::Bootstrap bootstrap;
+  auto* cluster = bootstrap.mutable_static_resources()->add_clusters();
+  cluster->set_name(cluster_str);
+  cluster->mutable_connect_timeout()->set_seconds(15);
+  cluster->set_type(envoy::api::v2::Cluster::DiscoveryType::Cluster_DiscoveryType_STATIC);
+  auto* host = cluster->add_hosts();
+  auto* socket_address = host->mutable_socket_address();
+  socket_address->set_address(uri.address()->ip()->addressAsString());
+  socket_address->set_port_value(uri.port());
+
+  // ENVOY_LOG(info, "Computed configuration: {}", bootstrap.DebugString());
+
+  return bootstrap;
 }
 
 // This function is called by EnvoyUrlAsyncFetcher::StartFetch.
 void EnvoyFetch::Start() {
+<<<<<<< HEAD
   std::function<void()> fetch_fun_ptr = std::bind(&EnvoyFetch::FetchWithEnvoy, this);
   cluster_manager_.getDispatcher()->post(fetch_fun_ptr);
   cluster_manager_.getDispatcher()->run(Envoy::Event::Dispatcher::RunType::NonBlock);
+=======
+  std::function<void()> fetch_fun_ptr =
+      std::bind(&EnvoyFetch::FetchWithEnvoy, this);
+  cluster_manager.getDispatcher()->post(fetch_fun_ptr);
+  cluster_manager.getDispatcher()->run(Envoy::Event::Dispatcher::RunType::NonBlock);
+>>>>>>> 0b33443699c2d2c4756f9a241c76eccfe8bf1e2c
 }
 
 bool EnvoyFetch::Init() {

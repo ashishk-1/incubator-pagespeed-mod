@@ -46,9 +46,19 @@ public:
   EnvoyClusterManager();
   ~EnvoyClusterManager();
   void initClusterManager();
+<<<<<<< HEAD
   Envoy::Upstream::ClusterManager& getClusterManager(const GoogleString str_url_);
   Envoy::Event::DispatcherPtr& getDispatcher() { return dispatcher_; }
   const envoy::config::bootstrap::v2::Bootstrap createBootstrapConfiguration(const Uri& uri) const;
+=======
+  // Envoy::Upstream::ClusterManager& getClusterManager() { return *cluster_manager_; }
+  Envoy::Event::DispatcherPtr& getDispatcher() { return dispatcher_; }
+  Envoy::Upstream::ProdClusterManagerFactory& getClusterManagerFactory() {
+    return *cluster_manager_factory_;
+  }
+  Envoy::Init::ManagerImpl& getInitManager() { return init_manager_; }
+  Envoy::Init::WatcherImpl& getInitWatcher() { return init_watcher_; }
+>>>>>>> 0b33443699c2d2c4756f9a241c76eccfe8bf1e2c
 
 private:
   Envoy::ThreadLocal::InstanceImpl tls_;
