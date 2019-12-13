@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -20,14 +20,15 @@
 #include "envoy_fetch.h"
 
 #include <algorithm>
-#include <string>
-#include <vector>
 #include <list>
 #include <map>
 #include <set>
+#include <string>
+#include <vector>
 
 #include "net/instaweb/http/public/async_fetch.h"
 #include "net/instaweb/http/public/inflating_fetch.h"
+#include "pagespeed/envoy/header_utils.h"
 #include "pagespeed/kernel/base/basictypes.h"
 #include "pagespeed/kernel/base/condvar.h"
 #include "pagespeed/kernel/base/message_handler.h"
@@ -42,7 +43,6 @@
 #include "pagespeed/kernel/http/response_headers.h"
 #include "pagespeed/kernel/http/response_headers_parser.h"
 #include "pagespeed_remote_data_fetcher.h"
-#include "pagespeed/envoy/header_utils.h"
 
 namespace net_instaweb {
 
@@ -50,9 +50,7 @@ namespace net_instaweb {
 const int64 keepalive_timeout_ms = 60000;
 static const char cluster_str[] = "cluster1";
 
-PagespeedDataFetcherCallback::PagespeedDataFetcherCallback(EnvoyFetch* fetch) { 
-  fetch_ = fetch;
-}
+PagespeedDataFetcherCallback::PagespeedDataFetcherCallback(EnvoyFetch* fetch) { fetch_ = fetch; }
 
 void PagespeedDataFetcherCallback::onSuccess(Envoy::Http::MessagePtr& response) {
   fetch_->setResponse(response->headers(), response->body());
@@ -81,19 +79,6 @@ EnvoyFetch::~EnvoyFetch() {
 }
 
 void EnvoyFetch::FetchWithEnvoy() {
-  UriImpl uri(str_url_);
-  try {
-    uri.resolve(*cluster_manager.getDispatcher(), Envoy::Network::DnsLookupFamily::Auto);
-  } catch (UriException) {
-    std::cout << "UriException \n";
-    std::cout.flush();
-  }
-  Envoy::Upstream::ClusterManagerPtr cm_{};
-  cm_ = cluster_manager.getClusterManagerFactory().clusterManagerFromProto(
-      createBootstrapConfiguration(uri));
-  cm_->setInitializedCb([this]() -> void {
-    cluster_manager.getInitManager().initialize(cluster_manager.getInitWatcher());
-  });
 
   envoy::api::v2::core::HttpUri http_uri;
   http_uri.set_uri(str_url_);
@@ -104,41 +89,19 @@ void EnvoyFetch::FetchWithEnvoy() {
       std::make_unique<PagespeedRemoteDataFetcher>(cluster_manager_.getClusterManager(), http_uri, *cb_ptr_);
 
   PagespeedRemoteDataFetcherPtr->fetch();
-  cluster_manager.getDispatcher()->run(Envoy::Event::Dispatcher::RunType::Block);
+  cluster_manager_.getDispatcher()->run(Envoy::Event::Dispatcher::RunType::Block);
 }
-
-const envoy::config::bootstrap::v2::Bootstrap
-EnvoyFetch::createBootstrapConfiguration(const Uri& uri) const {
-  envoy::config::bootstrap::v2::Bootstrap bootstrap;
-  auto* cluster = bootstrap.mutable_static_resources()->add_clusters();
-  cluster->set_name(cluster_str);
-  cluster->mutable_connect_timeout()->set_seconds(15);
-  cluster->set_type(envoy::api::v2::Cluster::DiscoveryType::Cluster_DiscoveryType_STATIC);
-  auto* host = cluster->add_hosts();
-  auto* socket_address = host->mutable_socket_address();
-  socket_address->set_address(uri.address()->ip()->addressAsString());
-  socket_address->set_port_value(uri.port());
-
-  // ENVOY_LOG(info, "Computed configuration: {}", bootstrap.DebugString());
-
-  return bootstrap;
-}
-
 
 // This function is called by EnvoyUrlAsyncFetcher::StartFetch.
 void EnvoyFetch::Start() {
-  std::function<void()> fetch_fun_ptr =
-      std::bind(&EnvoyFetch::FetchWithEnvoy, this);
-  cluster_manager.getDispatcher()->post(fetch_fun_ptr);
-  cluster_manager.getDispatcher()->run(Envoy::Event::Dispatcher::RunType::NonBlock);
+  std::function<void()> fetch_fun_ptr = std::bind(&EnvoyFetch::FetchWithEnvoy, this);
+  cluster_manager_.getDispatcher()->post(fetch_fun_ptr);
+  cluster_manager_.getDispatcher()->run(Envoy::Event::Dispatcher::RunType::NonBlock);
 }
-
 
 bool EnvoyFetch::Init() {
   return true;
 }
-
-
 // This function should be called only once. The only argument is sucess or
 // not.
 void EnvoyFetch::CallbackDone(bool success) {
