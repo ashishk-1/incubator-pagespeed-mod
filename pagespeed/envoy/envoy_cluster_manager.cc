@@ -117,6 +117,7 @@ EnvoyClusterManager::getClusterManager(const GoogleString str_url_) {
   try {
     uri.resolve(*dispatcher_, Envoy::Network::DnsLookupFamily::Auto);
   } catch (UriException) {
+    // TODO : Error Handling.
     std::cout << "UriException \n";
     std::cout.flush();
   }
@@ -138,7 +139,6 @@ EnvoyClusterManager::createBootstrapConfiguration(const Uri& uri) const {
   socket_address->set_address(uri.address()->ip()->addressAsString());
   socket_address->set_port_value(uri.port());
 
-  // ENVOY_LOG(info, "Computed configuration: {}", bootstrap.DebugString());
 
   return bootstrap;
 }
