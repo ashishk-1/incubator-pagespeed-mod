@@ -45,7 +45,7 @@ public:
   void initClusterManager();
   Envoy::Upstream::ClusterManager& getClusterManager(const GoogleString str_url_);
   Envoy::Event::DispatcherPtr& getDispatcher() { return dispatcher_; }
-  const envoy::config::bootstrap::v2::Bootstrap createBootstrapConfiguration(std::string scheme,std::string host_name,int port) const;
+  const envoy::config::bootstrap::v2::Bootstrap createBootstrapConfiguration(const std::string scheme,const std::string host_name,const int port) const;
 
 private:
   Envoy::ThreadLocal::InstanceImpl tls_;

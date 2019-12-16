@@ -115,7 +115,7 @@ Envoy::Upstream::ClusterManager&
 EnvoyClusterManager::getClusterManager(const GoogleString str_url_) {
   std::string host_name = "127.0.0.1";
   std::string scheme = "http";
-  int port = 80;
+  auto port = 80;
 
   cluster_manager_ = cluster_manager_factory_->clusterManagerFromProto(
       createBootstrapConfiguration(scheme, host_name, port));
@@ -124,8 +124,8 @@ EnvoyClusterManager::getClusterManager(const GoogleString str_url_) {
 }
 
 const envoy::config::bootstrap::v2::Bootstrap
-EnvoyClusterManager::createBootstrapConfiguration(std::string scheme, std::string host_name,
-                                                  int port) const {
+EnvoyClusterManager::createBootstrapConfiguration(const std::string scheme, const std::string host_name,
+                                                  const int port) const {
   envoy::config::bootstrap::v2::Bootstrap bootstrap;
   auto* cluster = bootstrap.mutable_static_resources()->add_clusters();
   cluster->set_name(cluster_str);
