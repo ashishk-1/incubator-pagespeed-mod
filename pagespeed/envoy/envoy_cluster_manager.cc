@@ -49,7 +49,6 @@
 
 namespace net_instaweb {
 
-
 EnvoyClusterManager::EnvoyClusterManager()
     : init_watcher_("envoyfetcher", []() {}), secret_manager_(config_tracker_),
       validation_context_(false, false), init_manager_("init_manager"),
